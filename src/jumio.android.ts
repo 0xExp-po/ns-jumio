@@ -31,7 +31,7 @@ export class Jumio extends Common {
             }
 
         } catch (e) {
-            this.cleanupSDK();
+            this.destroy();
             Utils.error(e);
             throw new Error(e);
         }
@@ -39,12 +39,17 @@ export class Jumio extends Common {
 
     public init({
         customerId,
+        callbackUrl = null,
         preSelectedData = null,
         cancelWithError = null,
         finishInitWithError = null,
         finishedScan = null
     }: InitArgs<JumioError, com.jumio.nv.NetverifyDocumentData>): void {
         this.netverifySDK.setCustomerInternalReference(customerId);
+
+        if (callbackUrl) {
+            this.netverifySDK.setCallbackUrl(callbackUrl);
+        }
 
         if (preSelectedData) {
             const { documentType, country } = preSelectedData;
@@ -66,7 +71,7 @@ export class Jumio extends Common {
             },
             onNetverifyInitiateError: (code: string, message: string) => {
                 finishInitWithError({ code, message });
-                this.cleanupSDK();
+                this.destroy();
             }
         }));
     }
@@ -117,12 +122,17 @@ export class Jumio extends Common {
                 cancelWithError({ code: errorCode, message: errorMessage }, scanReference);
             }
 
-            Application.android.off('activityResult', this.onActivityResultCallback);
-            this.cleanupSDK();
+            this.destroy();
         }
     }
 
-    private cleanupSDK() {
+    public destroy() {
+        if (this.onActivityResultCallback) {
+            Application.android.off('activityResult', this.onActivityResultCallback);
+
+            this.onActivityResultCallback = null;
+        }
+
         if (this.netverifySDK) {
             this.netverifySDK.destroy();
             this.netverifySDK = null;

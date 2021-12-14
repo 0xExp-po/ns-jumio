@@ -22,6 +22,7 @@ export class Jumio extends Common {
 
     public init({
         customerId,
+        callbackUrl = null,
         preSelectedData = null,
         cancelWithError = null,
         finishInitWithError = null,
@@ -37,6 +38,10 @@ export class Jumio extends Common {
         config.apiToken = this.merchantApiToken;
         config.apiSecret = this.merchantApiSecret;
         config.dataCenter = this.mapDataCenter(this.datacenter);
+
+        if (callbackUrl) {
+            config.callbackUrl = callbackUrl;
+        }
 
         if (preSelectedData) {
             const { country, documentType } = preSelectedData;
@@ -154,7 +159,7 @@ class NsjumiopluginDelegateImpl extends NSObject implements NetverifyViewControl
         return delegate;
     }
 
-    netverifyViewControllerDidCancelWithErrorScanReference(netverifyViewController: NetverifyViewController, error: NetverifyError, scanReference: string): void {
+    netverifyViewControllerDidCancelWithErrorScanReferenceAccountId(netverifyViewController: NetverifyViewController, error: NetverifyError, scanReference: string, accountId: string): void {
         if (error) {
             Utils.error(error.code, error.message);
         }
@@ -182,7 +187,7 @@ class NsjumiopluginDelegateImpl extends NSObject implements NetverifyViewControl
         }
     }
 
-    netverifyViewControllerDidFinishWithDocumentDataScanReference(netverifyViewController: NetverifyViewController, documentData: NetverifyDocumentData, scanReference: string): void {
+    netverifyViewControllerDidFinishWithDocumentDataScanReferenceAccountIdAuthenticationResult(netverifyViewController: NetverifyViewController, documentData: NetverifyDocumentData, scanReference: string, accountId: string, authenticationResult: boolean): void {
         Utils.log("Good with scan reference: %@", scanReference);
 
         const {
